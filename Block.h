@@ -6,11 +6,10 @@
 #include "ShaderProgram.h"
 
 /*
-* The Block class. Fundamental building piece of the game.
+* Drawing a block creates 1 cube with the specified block type.
 * 
-* Contains pre-defined vertices (not set by user).
-* User can specify texture type.
-* 
+* Has its own VAO and VBO and a reference to shader program.
+* Stores its own model matrix.
 */
 
 class Block {
@@ -20,10 +19,9 @@ public:
 	unsigned int VBO;
 	BlockType blockType;
 	glm::vec3 pos;
-	glm::mat4 model;
+	glm::mat4 model; // model matrix (local -> world space)
 
 	Block(ShaderProgram* shaderProgram, glm::vec3 pos, BlockType blockType, std::vector<std::vector<std::vector<std::pair<float, float>>>>& texCoords);
 
 	void draw();
-	void update();
 };

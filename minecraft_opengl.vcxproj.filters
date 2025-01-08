@@ -39,6 +39,9 @@
     <ClCompile Include="BlockType.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="Crosshair.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Constants.h">
@@ -59,7 +62,7 @@
     <ClInclude Include="..\..\..\..\source\repos\opengl_tutorials\opengl_tutorials\stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CornerLocation.h">
+    <ClInclude Include="Crosshair.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -68,6 +71,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shader.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ui_shader.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="ui_shader.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

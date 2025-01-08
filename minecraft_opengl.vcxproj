@@ -135,6 +135,7 @@
     <ClCompile Include="Block.cpp" />
     <ClCompile Include="BlockType.h" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Crosshair.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
@@ -145,7 +146,7 @@
     <ClInclude Include="..\..\..\..\source\repos\opengl_tutorials\opengl_tutorials\stb_image.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Constants.h" />
-    <ClInclude Include="CornerLocation.h" />
+    <ClInclude Include="Crosshair.h" />
     <ClInclude Include="Game.h" />
     <ClInclude Include="Block.h" />
     <ClInclude Include="ShaderProgram.h" />
@@ -153,6 +154,8 @@
   <ItemGroup>
     <None Include="shader.frag" />
     <None Include="shader.vert" />
+    <None Include="ui_shader.frag" />
+    <None Include="ui_shader.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\tex_array_0.png" />

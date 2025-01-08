@@ -1,5 +1,9 @@
 #pragma once
 
+/*
+* All block types in game.
+*/
+
 enum BlockType {
 	NONE,
 	SAND,

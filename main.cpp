@@ -6,13 +6,14 @@
 #include <iostream>
 
 int main()
-{
+{   
+    // GLFW setup
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Minecraft OpenGL C++", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -21,33 +22,28 @@ int main()
     }
     glfwMakeContextCurrent(window);
 
+    // GLAD setup
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
 
-    glEnable(GL_DEPTH_TEST);
+    // Lock mouse cursor to screen centre
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Game game(window, glm::vec3(0.0f, 0.0f, 0.0f));
+    Game game(window, glm::vec3(BLOCK_SIZE * 25, BLOCK_SIZE * 50, BLOCK_SIZE * 25));
 
-    game.shaderProgram.use();
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
-    game.shaderProgram.setMat4("proj", proj);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, game.texture);
     
     while (!(glfwWindowShouldClose(window))) {
 
-        // Input
         game.process_input(window);
 
         // Rendering
-        glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+        glClearColor(126.0f/255.0f, 192.0f/255.0f, 255.0f/255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        game.shaderProgram.setMat4("view", game.camera.get_view_matrix());
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, game.texture);
         game.draw();
 
         glfwSwapBuffers(window);

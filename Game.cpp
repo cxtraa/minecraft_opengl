@@ -3,8 +3,7 @@
 #include <GLFW/glfw3.h>
 #include "Constants.h"
 #include "BlockType.h"
-#include "stb_image.h"#
-#include "CornerLocation.h"
+#include "stb_image.h"
 
 #include <unordered_map>
 #include <vector>
@@ -12,72 +11,78 @@
 
 Game::Game(GLFWwindow* window, glm::vec3 cameraStartPos) :
 	camera(cameraStartPos),
-	shaderProgram(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH)
+	worldShader(WORLD_VERTEX_SHADER_PATH, WORLD_FRAGMENT_SHADER_PATH),
+	crosshairShader(CROSSHAIR_VERTEX_SHADER_PATH, CROSSHAIR_FRAGMENT_SHADER_PATH),
+	crosshair(&crosshairShader, CROSSHAIR_SIZE, CROSSHAIR_THICKNESS)
 {
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
-
+	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetWindowUserPointer(window, this);
-	generate_texture();
 
+	blockToPlace = DIRT;
 	lastFrame = 0.0f;
+	lastClickEventTime = 0.0f;
+	lastMousePosX = SCREEN_WIDTH / 2;
+	lastMousePosY = SCREEN_HEIGHT / 2;
+	isFirstMouse = true;
 
-	lastX = screenWidth / 2;
-	lastY = screenHeight / 2;
+	blockPlaceKeyBinds = {
+		{GLFW_KEY_1, SAND},
+		{GLFW_KEY_2, GRASS},
+		{GLFW_KEY_3, DIRT},
+		{GLFW_KEY_4, GRAVEL},
+		{GLFW_KEY_5, SNOW},
+		{GLFW_KEY_6, CHERRY_LEAVES},
+		{GLFW_KEY_7, OAK_LOG}
+	};
 
-	firstMouse = true;
-
-	// Array for tex coordinate positions.
-	// For position (i, j), the bottom left is located at (j*texW, i*texH).
-	
+	generate_texture();
 	texCoords = std::vector<std::vector<std::vector<std::pair<float, float>>>>(numTexturesY, std::vector<std::vector<std::pair<float,float>>>(numTexturesX, std::vector<std::pair<float,float>>(4, {0.0f, 0.0f})));
-	for (unsigned int i = 0; i < numTexturesY; i++) {
-		for (unsigned int j = 0; j < numTexturesX; j++) {
-			texCoords[i][j][0] = { (j+halfPixel) * texW, (i+halfPixel) * texH }; // Bottom left
-			texCoords[i][j][1] = { (j+1-halfPixel) * texW, (i+halfPixel) * texH }; // Bottom right
-			texCoords[i][j][2] = { (j+halfPixel) * texW, (i+1-halfPixel) * texH }; // Top left
-			texCoords[i][j][3] = { (j+1-halfPixel) * texW, (i+1-halfPixel) * texH }; // Top right
-		}
-	}
+	fill_texture_coords();
 
-	// Create a grid of blocks
-	int maxHeight = 20;
-	for (unsigned int i = 0; i < 50; i++) {
-		for (unsigned int k = 0; k < 50; k++) {
-			int height = perlin_noise(i, k, maxHeight);
-			for (int j = 0; j < height; j++) {
-				Block block(&shaderProgram, glm::vec3(i * blockSize, j * blockSize, k * blockSize), OAK_LOG, texCoords);
-				blocks.push_back(block);
-			}
+	generate_terrain();
+}
+
+void Game::draw() {
+	glEnable(GL_DEPTH_TEST); // Depth testing should be on for the blocks
+	worldShader.use();
+	camera.update();
+	worldShader.setMat4("view", camera.get_view_matrix());
+	worldShader.setMat4("proj", camera.get_proj_matrix());
+	for (Block& block : blocks) {
+		if (camera.block_in_frustum(block)) {
+			block.draw();
 		}
 	}
+	glDisable(GL_DEPTH_TEST); // To ensure crosshair is on top, turn off depth test
+	crosshair.draw();
 }
 
 void Game::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 }
 
-void Game::mouse_callback(GLFWwindow* window, double xpos, double ypos) {
-	// Mouse callback goes here.
+void Game::mouse_callback(GLFWwindow* window, double currMousePosX, double currMousePosY) {
 
 	// Get instance of Game (pointer to it).
 	Game* game = static_cast<Game*>(glfwGetWindowUserPointer(window));
 
-	if (game->firstMouse) {
-		game->lastX = xpos;
-		game->lastY = ypos;
-		game->firstMouse = false;
+	if (game->isFirstMouse) {
+		game->lastMousePosX = currMousePosX;
+		game->lastMousePosY = currMousePosY;
+		game->isFirstMouse = false;
 	}
 
-	float xoffset = (xpos - game->lastX) * sensitivity;
-	float yoffset = -(ypos - game->lastY) * sensitivity;
-	game->lastX = xpos;
-	game->lastY = ypos;
+	float xoffset = (currMousePosX - game->lastMousePosX) * SENSITIVITY;
+	float yoffset = -(currMousePosY - game->lastMousePosY) * SENSITIVITY;
+	game->lastMousePosX = currMousePosX;
+	game->lastMousePosY = currMousePosY;
 
 	game->camera.yaw += xoffset;
 	game->camera.pitch += yoffset;
 
-	game->camera.yaw = glm::mod(game->camera.yaw, 360.0f);
+	game->camera.yaw = glm::mod(game->camera.yaw, 360.0f); // Every 360 deg rotation leaves yaw unchanged
 
 	// Keep pitch in -89.0f - 89.0f
 	if (game->camera.pitch > 89.0f) {
@@ -86,6 +91,18 @@ void Game::mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	else if (game->camera.pitch < -89.0f) {
 		game->camera.pitch = -89.0f;
 	}
+}
+
+void Game::scroll_callback(GLFWwindow* window, double x_offset, double y_offset) {
+	Game* game = static_cast<Game*>(glfwGetWindowUserPointer(window));
+	game->camera.FOV_Y -= SCROLL_SPEED * (float)y_offset;
+	if (game->camera.FOV_Y < MIN_FOV_Y) {
+		game->camera.FOV_Y = MIN_FOV_Y;
+	}
+	if (game->camera.FOV_Y > MAX_FOV_Y) {
+		game->camera.FOV_Y = MAX_FOV_Y;
+	}
+	game->camera.FOV_X = game->camera.get_fov_x_deg(game->camera.FOV_Y);
 }
 
 void Game::process_input(GLFWwindow* window) {
@@ -98,7 +115,7 @@ void Game::process_input(GLFWwindow* window) {
 	lastFrame = currentTime;
 
 	// Movement controls
-	glm::vec3 planeUnitVector = camera.cameraFront - glm::dot(camera.cameraFront, camera.cameraUp) * camera.cameraUp;
+	glm::vec3 planeUnitVector = camera.cameraFront - glm::dot(camera.cameraFront, camera.up) * camera.up;
 	planeUnitVector = glm::normalize(planeUnitVector);
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
 		camera.cameraPos += planeUnitVector * PLAYER_SPEED * deltaTime;
@@ -110,25 +127,45 @@ void Game::process_input(GLFWwindow* window) {
 		camera.cameraPos -= planeUnitVector * PLAYER_SPEED * deltaTime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		camera.cameraPos += glm::normalize(glm::cross(camera.cameraFront, camera.cameraUp)) * PLAYER_SPEED * deltaTime;
+		camera.cameraPos += camera.cameraRight * PLAYER_SPEED * deltaTime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		camera.cameraPos += camera.cameraUp * PLAYER_SPEED * deltaTime;
+		camera.cameraPos += camera.up * PLAYER_SPEED * deltaTime;
 	}
 	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {
-		camera.cameraPos -= camera.cameraUp * PLAYER_SPEED * deltaTime;
+		camera.cameraPos -= camera.up * PLAYER_SPEED * deltaTime;
+	}
+	
+	if (glfwGetTime() - lastClickEventTime >= CLICK_COOLDOWN_TIME && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+		lastClickEventTime = glfwGetTime();
+		destroy_block();
+	}
+	if (glfwGetTime() - lastClickEventTime >= CLICK_COOLDOWN_TIME && glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+		lastClickEventTime = glfwGetTime();
+		create_block();
+	}
+
+	for (auto it = blockPlaceKeyBinds.begin(); it != blockPlaceKeyBinds.end(); it++) {
+		if (glfwGetKey(window, it->first) == GLFW_PRESS) {
+			blockToPlace = it->second;
+		}
 	}
 }
 
-void Game::draw() {
-	for (Block& block : blocks) {
-		block.draw();
+void Game::fill_texture_coords() {
+	for (unsigned int i = 0; i < numTexturesY; i++) {
+		for (unsigned int j = 0; j < numTexturesX; j++) {
+			texCoords[i][j][0] = { (j + halfPixel) * texW, (i + halfPixel) * texH }; // Bottom left
+			texCoords[i][j][1] = { (j + 1 - halfPixel) * texW, (i + halfPixel) * texH }; // Bottom right
+			texCoords[i][j][2] = { (j + halfPixel) * texW, (i + 1 - halfPixel) * texH }; // Top left
+			texCoords[i][j][3] = { (j + 1 - halfPixel) * texW, (i + 1 - halfPixel) * texH }; // Top right
+		}
 	}
 }
 
 void Game::generate_texture() {
 	int width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(true); // Images are inverted by default
 	unsigned char* data = stbi_load(TEXTURE_PATH, &width, &height, &nrChannels, 0);
 	if (!data) {
 		std::cerr << "Texture image failed to load." << std::endl;
@@ -143,6 +180,83 @@ void Game::generate_texture() {
 	stbi_image_free(data);
 }
 
-int Game::perlin_noise(int x, int y, int maxHeight) {
-	return (int)(maxHeight * (sin(((float)x + (float)y) / 10) + 1.1)/2);
+int Game::get_terrain_height(int x, int z, int maxHeight) {
+	return (int)(maxHeight * (1.1 + cos((float)x/15.0f) * cos((float)z/15.0f)));
+}
+
+void Game::generate_terrain() {
+	int maxHeight = 20;
+	for (unsigned int i = 0; i < 50; i++) {
+		for (unsigned int k = 0; k < 50; k++) {
+			int height = get_terrain_height(i, k, maxHeight);
+			for (int j = 0; j < height - 1; j++) {
+				Block block(&worldShader, glm::vec3(i * BLOCK_SIZE, j * BLOCK_SIZE, k * BLOCK_SIZE), DIRT, texCoords);
+				blocks.push_back(block);
+			}
+			Block block(&worldShader, glm::vec3(i * BLOCK_SIZE, (height - 1) * BLOCK_SIZE, k * BLOCK_SIZE), GRASS, texCoords);
+			blocks.push_back(block);
+		}
+	}
+}
+
+void Game::destroy_block() {
+	// Iterate through all blocks to find closest one that player is looking at and remove it.
+
+	float closest_distance = MAX_RAY_DIST;
+	auto closestBlockRef = blocks.end();
+
+	for (auto it = blocks.begin(); it != blocks.end(); it++) {
+		Block& block = *it;
+		if (glm::length(block.pos - camera.cameraPos) <= closest_distance && camera.camera_intersects_block(block)) {
+			closest_distance = glm::length(block.pos - camera.cameraPos);
+			closestBlockRef = it;
+		}
+	}
+
+	if (closestBlockRef != blocks.end()) {
+		blocks.erase(closestBlockRef);
+	}
+}
+
+void Game::create_block() {
+	// Find closest block similar to destroy_block
+	// BUT, also find which face we are looking at and create new block on that face
+
+	float closest_distance = MAX_RAY_DIST;
+	auto closestBlockRef = blocks.end();
+
+	for (auto it = blocks.begin(); it != blocks.end(); it++) {
+		Block& block = *it;
+		if (glm::length(block.pos - camera.cameraPos) <= closest_distance && camera.camera_intersects_block(block)) {
+			closest_distance = glm::length(block.pos - camera.cameraPos);
+			closestBlockRef = it;
+		}
+	}
+
+	if (closestBlockRef == blocks.end()) {
+		return;
+	}
+
+	glm::vec3 ac = camera.cameraPos - closestBlockRef->pos;
+	float B = glm::dot(2 * ac, camera.cameraFront);
+	float C = glm::length2(ac) - pow(BLOCK_RADIUS, 2);
+	float D = pow(B, 2) - 4 * C;
+	float lambda = 0.5f * (-B - std::sqrt(D)); // Eq of line is r = a + lambda * d, solving for lambda
+
+	glm::vec3 intersecPoint = camera.cameraPos + camera.cameraFront * lambda;
+	glm::vec3 localPoint = intersecPoint - closestBlockRef->pos; // transform to local coordinates of block
+	glm::vec3 absPoint = glm::abs(localPoint);
+	glm::vec3 hitNormal = glm::vec3(0.0f);
+	if (absPoint.x > absPoint.y && absPoint.x > absPoint.z) { // if largest component is x, should build in x direction
+		hitNormal = glm::vec3((localPoint.x > 0) ? 1.0f : -1.0f, 0.0f, 0.0f); // positive means positive normal
+	}
+	else if (absPoint.y > absPoint.x && absPoint.y > absPoint.z) {
+		hitNormal = glm::vec3(0.0f, (localPoint.y > 0) ? 1.0f : -1.0f, 0.0f);
+	}
+	else {
+		hitNormal = glm::vec3(0.0f, 0.0f, (localPoint.z > 0) ? 1.0f : -1.0f);
+	}
+
+	// block position + face normal vector * block size gives pos of new block
+	blocks.push_back(Block(&worldShader, closestBlockRef->pos + hitNormal*BLOCK_SIZE, blockToPlace, texCoords));
 }

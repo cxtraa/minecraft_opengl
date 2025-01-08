@@ -1,7 +1,5 @@
 #pragma once
 
-#pragma once
-
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -9,6 +7,14 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+/*
+* Interface for creating shader programs.
+* 
+* Takes in filepath to vertex shader and fragment shader.
+* 
+* Allows updating of uniforms via various "set" methods.
+*/
 
 class ShaderProgram {
 public:

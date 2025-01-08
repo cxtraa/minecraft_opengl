@@ -3,30 +3,48 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <unordered_map>
 #include "Camera.h"
 #include "Block.h"
+#include "BlockType.h"
+#include "CrossHair.h"
 
 class Game {
 public:
 	Game(GLFWwindow* window, glm::vec3 cameraStartPos);
 	Camera camera;
-	ShaderProgram shaderProgram;
+	Crosshair crosshair;
+	ShaderProgram worldShader; // shader for blocks
+	ShaderProgram crosshairShader; // shader for crosshair
 
-	float lastFrame;
+	float lastFrame; // time since last frame for deltaTime calcs
+	float lastClickEventTime; // time since last block placed / destroyed
 
-	float lastX;
-	float lastY;
-	bool firstMouse;
+	float lastMousePosX;
+	float lastMousePosY;
+	bool isFirstMouse; // is this first mouse movement?
 
-	unsigned int texture;
+	unsigned int texture; // ID for texture atlas of all blocks
 
-	std::vector<std::vector<std::vector<std::pair<float, float>>>> texCoords;
-	std::vector<Block> blocks;
+	// texCoords[i][j][cornerIndex] gives (x, y) coords on texture atlas for texture at index [i][j]. [0][0] is bottom left of texture atlas.
+	// see fill_texture_coords() for cornerIndex assignments
+	std::vector<std::vector<std::vector<std::pair<float, float>>>> texCoords; 
+
+	BlockType blockToPlace;
+	std::unordered_map<int, BlockType> blockPlaceKeyBinds; // user presses number to change block to place
+	std::vector<Block> blocks; // stores all blocks in world
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+	static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
+
 	void process_input(GLFWwindow* window);
-	void draw();
+	void draw(); // draw all game objects
+	void fill_texture_coords(); // populates `texCoords`
 	void generate_texture();
-	int perlin_noise(int x, int y, int maxHeight);
+	int get_terrain_height(int x, int z, int maxHeight); // returns height of terrain at some (x, z)
+	void generate_terrain(); // populates `blocks`
+
+	void destroy_block();
+	void create_block();
 };

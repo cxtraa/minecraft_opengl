@@ -2,10 +2,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <unordered_map>
 #include "stb_image.h"
 #include "BlockType.h"
 #include "Constants.h"
-#include "CornerLocation.h"
 
 #include "Block.h"
 
@@ -14,88 +14,73 @@ Block::Block(ShaderProgram* shaderProgram, glm::vec3 pos, BlockType blockType, s
 	this->shaderProgram = shaderProgram;
 	this->blockType = blockType;
 
-	int idx = 0;
-	if (blockType == OAK_LOG) {
-		idx = 0;
-	}
-	else if (blockType == CHERRY_LEAVES) {
-		idx = 1;
-	}
-	else if (blockType == SNOW) {
-		idx = 2;
-	}
-	else if (blockType == GRAVEL) {
-		idx = 3;
-	}
-	else if (blockType == DIRT) {
-		idx = 4;
-	}
-	else if (blockType == GRASS) {
-		idx = 5;
-	}
-	else if (blockType == SAND) {
-		idx = 6;
-	}
-	else if (blockType == NONE) {
-		idx = 7;
-	}
+	std::unordered_map<BlockType, int> blockToIdx = {
+		{OAK_LOG, 0},
+		{CHERRY_LEAVES, 1},
+		{SNOW, 2},
+		{GRAVEL, 3},
+		{DIRT, 4},
+		{GRASS, 5},
+		{SAND, 6},
+		{NONE, 7}
+	};
+	int idx = blockToIdx[blockType];
 
     float vertices[] = {
-        // Positions                    // Texture Coordinates (U, V)
 
-        // Bottom face (0)
-        -blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][0][0].first, texCoords[idx][0][0].second, // Bottom-left
-         blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][0][1].first, texCoords[idx][0][1].second, // Bottom-right
-         blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][0][3].first, texCoords[idx][0][3].second, // Top-right
+        // Bottom face
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][0][0].first, texCoords[idx][0][0].second, // Bottom-left
+         BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][0][1].first, texCoords[idx][0][1].second, // Bottom-right
+         BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][0][3].first, texCoords[idx][0][3].second, // Top-right
 
-         blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][0][3].first, texCoords[idx][0][3].second, // Top-right
-        -blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][0][2].first, texCoords[idx][0][2].second, // Top-left
-        -blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][0][0].first, texCoords[idx][0][0].second, // Bottom-left
+         BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][0][3].first, texCoords[idx][0][3].second, // Top-right
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][0][2].first, texCoords[idx][0][2].second, // Top-left
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][0][0].first, texCoords[idx][0][0].second, // Bottom-left
 
-        // Top face (2)
-        -blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][2][0].first, texCoords[idx][2][0].second, // Bottom-left
-         blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][2][1].first, texCoords[idx][2][1].second, // Bottom-right
-         blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][2][3].first, texCoords[idx][2][3].second, // Top-right
+        // Top face
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][2][0].first, texCoords[idx][2][0].second, // Bottom-left
+         BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][2][1].first, texCoords[idx][2][1].second, // Bottom-right
+         BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][2][3].first, texCoords[idx][2][3].second, // Top-right
 
-         blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][2][3].first, texCoords[idx][2][3].second, // Top-right
-        -blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][2][2].first, texCoords[idx][2][2].second, // Top-left
-        -blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][2][0].first, texCoords[idx][2][0].second, // Bottom-left
+         BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][2][3].first, texCoords[idx][2][3].second, // Top-right
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][2][2].first, texCoords[idx][2][2].second, // Top-left
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][2][0].first, texCoords[idx][2][0].second, // Bottom-left
 
-        // Front face (1)
-        -blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-left
-         blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Bottom-right
-         blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
+        // Front face
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-left
+         BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Bottom-right
+         BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
 
-         blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
-        -blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Top-left
-        -blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-left
+         BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Top-left
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-left
 
-		// Back face (5)
-		-blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-left
-		-blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Top-left
-		 blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
+		// Back face
+		-BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-left
+		-BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Top-left
+		 BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
 
-		 blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
-		 blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Bottom-right
-		-blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second,  // Bottom-left
+		 BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-right
+		 BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Bottom-right
+		-BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second,  // Bottom-left
 
-        // Left face (2)
-        -blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Bottom-left
-        -blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-left
-        -blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
+        // Left face
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Bottom-left
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-left
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
 
-        -blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
-        -blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-right
-        -blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Bottom-left
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
+        -BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-right
+        -BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Bottom-left
 
-        // Right face (3)
-         blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Bottom-left
-         blockSize/2,  blockSize/2, -blockSize/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-left
-         blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
+        // Right face
+         BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second, // Bottom-left
+         BLOCK_SIZE/2,  BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][3].first, texCoords[idx][1][3].second, // Top-left
+         BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
 
-         blockSize/2, -blockSize/2, -blockSize/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
-         blockSize/2, -blockSize/2,  blockSize/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-right
-         blockSize/2,  blockSize/2,  blockSize/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second  // Bottom-left
+         BLOCK_SIZE/2, -BLOCK_SIZE/2, -BLOCK_SIZE/2, texCoords[idx][1][1].first, texCoords[idx][1][1].second, // Top-right
+         BLOCK_SIZE/2, -BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][0].first, texCoords[idx][1][0].second, // Bottom-right
+         BLOCK_SIZE/2,  BLOCK_SIZE/2,  BLOCK_SIZE/2, texCoords[idx][1][2].first, texCoords[idx][1][2].second  // Bottom-left
     };
 
 	// VBO, VAO
@@ -116,11 +101,7 @@ Block::Block(ShaderProgram* shaderProgram, glm::vec3 pos, BlockType blockType, s
 }
 
 void Block::draw() {
-	glBindVertexArray(VAO);
 	shaderProgram->setMat4("model", model);
+	glBindVertexArray(VAO);
 	glDrawArrays(GL_TRIANGLES, 0, 36);
-}
-
-void Block::update() {
-
 }
