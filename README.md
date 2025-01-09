@@ -2,9 +2,9 @@
 
 ### About
 
-See the **demo video** ![here](https://www.youtube.com/watch?v=0iviS1sgiBE).
+See the **demo video** [here](https://www.youtube.com/watch?v=0iviS1sgiBE).
 
-This project is the result of what I've learnt from a set of excellent tutorial articles on OpenGL at ![learnopengl.com](https://learnopengl.com/).
+This project is the result of what I've learnt from a set of excellent tutorial articles on OpenGL at [learnopengl.com](https://learnopengl.com/).
 
 OpenGL is merely a specification; its implementation is found in your computer's graphic drivers (NVIDIA, AMD, Intel, etc.). To facilitate the use of these implementations:
 - `GLAD` is used to access OpenGL functions.
@@ -12,7 +12,7 @@ OpenGL is merely a specification; its implementation is found in your computer's
 
 I used GLM, which provides useful mathematical functions such as `glm::dot` and data types like `glm::vec3` and `glm::mat4`. It facilitates matrix multiplication and the creation of matrices such as the projection matrix using `glm::perspective`, for example.
 
-To load the texture image, I used `stb_image.h` created by Sean Barrett, which you can find ![here](https://github.com/nothings/stb/blob/master/stb_image.h).
+To load the texture image, I used `stb_image.h` created by Sean Barrett, which you can find [here](https://github.com/nothings/stb/blob/master/stb_image.h).
 
 ### Classes
 
