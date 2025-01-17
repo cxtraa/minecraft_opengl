@@ -32,7 +32,7 @@ int main()
     // Lock mouse cursor to screen centre
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    Game game(window, glm::vec3(BLOCK_SIZE * 25, BLOCK_SIZE * 50, BLOCK_SIZE * 25));
+    Game game(window, glm::vec3(BLOCK_SIZE * 25, BLOCK_SIZE * 25, BLOCK_SIZE * 25));
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, game.texture);

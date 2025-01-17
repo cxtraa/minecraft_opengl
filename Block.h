@@ -25,7 +25,11 @@ public:
 	glm::vec3 pos;
 	glm::mat4 model; // model matrix (local -> world space)
 
-	Block(ShaderProgram* shaderProgram, std::vector<unsigned int>* VBOs, std::vector<unsigned int>* VAOs, glm::vec3 pos, BlockType blockType);
+	int i;
+	int j;
+	int k;
+
+	Block(ShaderProgram* shaderProgram, std::vector<unsigned int>* VBOs, std::vector<unsigned int>* VAOs, int i, int j, int k, BlockType blockType);
 
 	void draw();
 };

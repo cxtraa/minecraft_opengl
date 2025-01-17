@@ -3,7 +3,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <vector>
+#include <tuple>
 #include <unordered_map>
+#include <unordered_set>
 #include "Camera.h"
 #include "BlockType.h"
 #include "CrossHair.h"
@@ -36,7 +38,9 @@ public:
 
 	BlockType blockToPlace;
 	std::unordered_map<int, BlockType> blockPlaceKeyBinds; // user presses number to change block to place
-	std::vector<Block> blocks; // stores all blocks in world
+
+	std::vector<Block> blocks;
+	std::vector<std::vector<std::vector<bool>>> isBlock;
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -52,4 +56,6 @@ public:
 
 	void destroy_block();
 	void create_block();
+
+	bool is_visible(Block& block);
 };

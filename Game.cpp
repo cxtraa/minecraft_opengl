@@ -10,6 +10,7 @@
 #include <iostream>
 
 Game::Game(GLFWwindow* window, glm::vec3 cameraStartPos) :
+	isBlock(WORLD_MAX_X, std::vector<std::vector<bool>>(WORLD_MAX_Y, std::vector<bool>(WORLD_MAX_Z, false))),
 	VBOs(numBlockTypes, 0),
 	VAOs(numBlockTypes, 0),
 	camera(cameraStartPos),
@@ -53,7 +54,7 @@ void Game::draw() {
 	worldShader.setMat4("view", camera.get_view_matrix());
 	worldShader.setMat4("proj", camera.get_proj_matrix());
 	for (Block& block : blocks) {
-		if (camera.block_in_frustum(block)) {
+		if (camera.block_in_frustum(block) && is_visible(block)) {
 			block.draw();
 		}
 	}
@@ -183,19 +184,20 @@ void Game::generate_texture() {
 }
 
 int Game::get_terrain_height(int x, int z, int maxHeight) {
-	return (int)(maxHeight * (1.1 + cos((float)x/15.0f) * cos((float)z/15.0f)));
+	return (int)(maxHeight * (0.5f + 0.5f * cos((float)x/15.0f) * cos((float)z/15.0f))) % maxHeight;
 }
 
 void Game::generate_terrain() {
-	int maxHeight = 20;
-	for (unsigned int i = 0; i < 200; i++) {
-		for (unsigned int k = 0; k < 200; k++) {
-			int height = get_terrain_height(i, k, maxHeight);
-			for (int j = 0; j < height - 1; j++) {
-				Block block(&worldShader, &VBOs, &VAOs, glm::vec3(i * BLOCK_SIZE, j * BLOCK_SIZE, k * BLOCK_SIZE), DIRT);
+	for (int i = 0; i < WORLD_MAX_X; i++) {
+		for (int k = 0; k < WORLD_MAX_Z; k++) {
+			int height = get_terrain_height(i, k, WORLD_MAX_Y / 2);
+			for (int j = 0; j < height; j++) {
+				Block block(&worldShader, &VBOs, &VAOs, i, j, k, DIRT);
+				isBlock[i][j][k] = true;
 				blocks.push_back(block);
 			}
-			Block block(&worldShader, &VBOs, &VAOs, glm::vec3(i * BLOCK_SIZE, (height - 1) * BLOCK_SIZE, k * BLOCK_SIZE), GRASS);
+			Block block(&worldShader, &VBOs, &VAOs, i, height, k, GRASS);
+			isBlock[i][height][k] = true;
 			blocks.push_back(block);
 		}
 	}
@@ -216,6 +218,7 @@ void Game::destroy_block() {
 	}
 
 	if (closestBlockRef != blocks.end()) {
+		isBlock[closestBlockRef->i][closestBlockRef->j][closestBlockRef->k] = false;
 		blocks.erase(closestBlockRef);
 	}
 }
@@ -249,18 +252,27 @@ void Game::create_block() {
 	glm::vec3 localPoint = intersecPoint - closestBlockRef->pos; // transform to local coordinates of block
 	glm::vec3 absPoint = glm::abs(localPoint);
 	glm::vec3 hitNormal = glm::vec3(0.0f);
+	int x = closestBlockRef->i;
+	int y = closestBlockRef->j;
+	int z = closestBlockRef->k;
+	int dx = 0;
+	int dy = 0;
+	int dz = 0;
 	if (absPoint.x > absPoint.y && absPoint.x > absPoint.z) { // if largest component is x, should build in x direction
-		hitNormal = glm::vec3((localPoint.x > 0) ? 1.0f : -1.0f, 0.0f, 0.0f); // positive means positive normal
+		dx = (localPoint.x > 0.0f) ? 1.0f : -1.0f;
 	}
 	else if (absPoint.y > absPoint.x && absPoint.y > absPoint.z) {
-		hitNormal = glm::vec3(0.0f, (localPoint.y > 0) ? 1.0f : -1.0f, 0.0f);
+		dy = (localPoint.y > 0.0f) ? 1.0f : -1.0f;
 	}
 	else {
-		hitNormal = glm::vec3(0.0f, 0.0f, (localPoint.z > 0) ? 1.0f : -1.0f);
+		dz = (localPoint.z > 0.0f) ? 1.0f : -1.0f;
 	}
 
 	// block position + face normal vector * block size gives pos of new block
-	blocks.push_back(Block(&worldShader, &VBOs, &VAOs, closestBlockRef->pos + hitNormal*BLOCK_SIZE, blockToPlace));
+	if (0 <= x + dx && x + dx < WORLD_MAX_X && 0 <= y + dy && y + dy < WORLD_MAX_Y && 0 <= z + dz && z + dz < WORLD_MAX_Z) {
+		blocks.push_back(Block(&worldShader, &VBOs, &VAOs, x + dx, y + dy, z + dz, blockToPlace));
+		isBlock[x + dx][y + dy][z + dz] = true;
+	}	
 }
 
 void Game::gen_vbos_vaos() {
@@ -332,4 +344,14 @@ void Game::gen_vbos_vaos() {
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+}
+
+bool Game::is_visible(Block& block) {
+	// Check all the surrounding coordinates.
+	int i = block.i;
+	int j = block.j;
+	int k = block.k;
+	if (i == 0 || i == WORLD_MAX_X - 1 || j == 0 || j == WORLD_MAX_Y - 1 || k == 0 || k == WORLD_MAX_Z - 1) return true;
+	if (!isBlock[i + 1][j][k] || !isBlock[i - 1][j][k] || !isBlock[i][j + 1][k] || !isBlock[i][j - 1][k] || !isBlock[i][j][k + 1] || !isBlock[i][j][k - 1]) return true;
+	return false;
 }

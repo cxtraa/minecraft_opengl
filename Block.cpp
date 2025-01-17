@@ -9,13 +9,16 @@
 #include "Game.h"
 #include "Block.h"
 
-Block::Block(ShaderProgram* shaderProgram, std::vector<unsigned int>* VBOs, std::vector<unsigned int>* VAOs, glm::vec3 pos, BlockType blockType) {
+Block::Block(ShaderProgram* shaderProgram, std::vector<unsigned int>* VBOs, std::vector<unsigned int>* VAOs, int i, int j, int k, BlockType blockType) {
 	this->game = game;
-	this->pos = pos;
 	this->shaderProgram = shaderProgram;
 	this->blockType = blockType;
 	this->VBOs = VBOs;
 	this->VAOs = VAOs;
+	this->i = i;
+	this->j = j;
+	this->k = k;
+	this->pos = glm::vec3((float)i * BLOCK_SIZE, (float)j * BLOCK_SIZE, (float)k * BLOCK_SIZE);
 
 	std::unordered_map<BlockType, int> blockToIdx = {
 		{OAK_LOG, 0},
