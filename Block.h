@@ -12,16 +12,20 @@
 * Stores its own model matrix.
 */
 
+class Game;
+
 class Block {
 public:
+	Game* game;
 	ShaderProgram* shaderProgram;
-	unsigned int VAO;
-	unsigned int VBO;
+	std::vector<unsigned int>* VBOs;
+	std::vector<unsigned int>* VAOs;
+	int blockIdx;
 	BlockType blockType;
 	glm::vec3 pos;
 	glm::mat4 model; // model matrix (local -> world space)
 
-	Block(ShaderProgram* shaderProgram, glm::vec3 pos, BlockType blockType, std::vector<std::vector<std::vector<std::pair<float, float>>>>& texCoords);
+	Block(ShaderProgram* shaderProgram, std::vector<unsigned int>* VBOs, std::vector<unsigned int>* VAOs, glm::vec3 pos, BlockType blockType);
 
 	void draw();
 };

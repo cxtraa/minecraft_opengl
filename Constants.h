@@ -7,8 +7,8 @@
 #include "BlockType.h"
 
 // Screen constants
-const float SCREEN_WIDTH = 1920;
-const float SCREEN_HEIGHT = 1080;
+const float SCREEN_WIDTH = 1920.0f;
+const float SCREEN_HEIGHT = 1080.0f;
 const float ASPECT_RATIO = SCREEN_WIDTH / SCREEN_HEIGHT;
 
 // Movement / mouse control
@@ -23,6 +23,7 @@ const char* const CROSSHAIR_FRAGMENT_SHADER_PATH = "ui_shader.frag";
 const char* const TEXTURE_PATH = "textures/tex_array_0.png";
 
 // Texture dimensions
+const int numBlockTypes = 7;
 const int numTexturesX = 3;
 const int numTexturesY = 8;
 
@@ -32,17 +33,17 @@ const float halfPixel = 0.0f;
 
 // Block dimensions
 const float BLOCK_SIZE = 0.5f;
-const float BLOCK_RADIUS = BLOCK_SIZE * std::sqrt(3) * 0.5f; // We use a sphere bounding box for block for simplicity.
+const float BLOCK_RADIUS = BLOCK_SIZE * std::sqrt(3) * 0.8f; // We use a sphere bounding box for block for simplicity.
 
 // FOV settings
-const float DEFAULT_FOV_Y = 60.0f;
+const float DEFAULT_FOV_Y = 45.0f;
 const float MIN_FOV_Y = 1.0f;
 const float MAX_FOV_Y = 120.0f;
 const float SCROLL_SPEED = 5.0f; // for changing FOV
 
 // Render distance settings
 const float NEAR = 0.1f; // closest distance to render
-const float FAR = 50.0f; // furthest dist to render
+const float FAR = 30.0f; // furthest dist to render
 
 // Block interaction settings
 const float MAX_RAY_DIST = 6.0f * BLOCK_SIZE;

@@ -5,9 +5,10 @@
 #include <vector>
 #include <unordered_map>
 #include "Camera.h"
-#include "Block.h"
 #include "BlockType.h"
 #include "CrossHair.h"
+#include "Constants.h"
+#include "Block.h"
 
 class Game {
 public:
@@ -30,6 +31,9 @@ public:
 	// see fill_texture_coords() for cornerIndex assignments
 	std::vector<std::vector<std::vector<std::pair<float, float>>>> texCoords; 
 
+	std::vector<unsigned int> VBOs;
+	std::vector<unsigned int> VAOs;
+
 	BlockType blockToPlace;
 	std::unordered_map<int, BlockType> blockPlaceKeyBinds; // user presses number to change block to place
 	std::vector<Block> blocks; // stores all blocks in world
@@ -44,6 +48,7 @@ public:
 	void generate_texture();
 	int get_terrain_height(int x, int z, int maxHeight); // returns height of terrain at some (x, z)
 	void generate_terrain(); // populates `blocks`
+	void gen_vbos_vaos();
 
 	void destroy_block();
 	void create_block();

@@ -21,7 +21,7 @@ Camera::Camera(glm::vec3 startPos) {
 }
 
 glm::mat4 Camera::get_view_matrix() {
-	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
+	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 	return view;
 }
 
@@ -53,12 +53,12 @@ bool Camera::block_in_frustum(Block& block) {
 
 	// TOP and BOTTOM
 	float proj_y = glm::dot(block_pos, cameraUp);
-	float dist_y = BLOCK_RADIUS / std::cos(glm::radians(FOV_Y) * 0.5f) + proj_z * std::tan(glm::radians(FOV_Y) * 0.5f);
+	float dist_y = (BLOCK_RADIUS / std::cos(glm::radians(FOV_Y) * 0.5f)) + proj_z * std::tan(glm::radians(FOV_Y) * 0.5f);
 	if (!(-dist_y <= proj_y && proj_y <= dist_y)) return false;
 
 	// LEFT and RIGHT
 	float proj_x = glm::dot(block_pos, cameraRight);
-	float dist_x = BLOCK_RADIUS / std::cos(glm::radians(FOV_X) * 0.5f) + proj_z * std::tan(glm::radians(FOV_X) * 0.5f);;
+	float dist_x = (BLOCK_RADIUS / std::cos(glm::radians(FOV_X) * 0.5f)) + proj_z * std::tan(glm::radians(FOV_X) * 0.5f);;
 	if (!(-dist_x <= proj_x && proj_x <= dist_x)) return false;
 
 
