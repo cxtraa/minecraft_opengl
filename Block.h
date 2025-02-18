@@ -18,16 +18,15 @@ class Block {
 public:
 	Game* game;
 	ShaderProgram* shaderProgram;
+	BlockType blockType;
 	std::vector<unsigned int>* VBOs;
 	std::vector<unsigned int>* VAOs;
-	int blockIdx;
-	BlockType blockType;
-	glm::vec3 pos;
-	glm::mat4 model; // model matrix (local -> world space)
-
 	int i;
 	int j;
 	int k;
+	glm::vec3 pos;
+	int blockIdx;
+	glm::mat4 model; // model matrix (local -> world space)
 
 	Block(ShaderProgram* shaderProgram, std::vector<unsigned int>* VBOs, std::vector<unsigned int>* VAOs, int i, int j, int k, BlockType blockType);
 

@@ -26,5 +26,5 @@ public:
 	void setFloat(const std::string& uniformName, float value) const;
 	void setVec4(const std::string& uniformName, glm::vec4 value) const;
 	void setMat4(const std::string& uniformName, glm::mat4 value) const;
-	void checkCompileErrors(unsigned int shader, const std::string& type);
+	void checkCompileErrors(unsigned int shader, const std::string& type) const;
 };

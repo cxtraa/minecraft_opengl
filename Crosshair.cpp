@@ -5,8 +5,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-Crosshair::Crosshair(ShaderProgram* shaderProgram, float size, float thickness) {
-	this->shaderProgram = shaderProgram;
+Crosshair::Crosshair(ShaderProgram* shaderProgram, float size, float thickness) :
+	shaderProgram(shaderProgram)
+{
 	float vertices[] = {
 		// Horizontal rectangle
 		-size / SCREEN_WIDTH, thickness / SCREEN_HEIGHT,   // Bottom left

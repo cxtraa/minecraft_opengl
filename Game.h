@@ -11,15 +11,28 @@
 #include "CrossHair.h"
 #include "Constants.h"
 #include "Block.h"
+#include "PhysicsSystem.h"
+#include "ButtonManager.h"
+#include "UIManager.h"
+#include "GameState.h"
 
 class Game {
 public:
-	Game(GLFWwindow* window, glm::vec3 cameraStartPos);
+	Game(GLFWwindow* window, glm::vec3 cameraStartPos, bool creative);
+	bool creative;
+	bool playerOnGround;
+	float playerSpeed;
+
+	GameState gameState;
+	GLFWwindow* window;
+	ShaderProgram crosshairShader; // shader for crosshair
+	ShaderProgram worldShader; // shader for blocks
 	Camera camera;
 	Crosshair crosshair;
-	ShaderProgram worldShader; // shader for blocks
-	ShaderProgram crosshairShader; // shader for crosshair
-
+	PhysicsSystem physics;
+	ButtonManager buttonManager;
+	UIManager uiManager;
+	
 	float lastFrame; // time since last frame for deltaTime calcs
 	float lastClickEventTime; // time since last block placed / destroyed
 
@@ -43,19 +56,19 @@ public:
 	std::vector<std::vector<std::vector<bool>>> isBlock;
 
 	static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-	static void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-	static void scroll_callback(GLFWwindow* window, double x_offset, double y_offset);
+	static void game_mouse_callback(GLFWwindow* window, double xpos, double ypos);
 
-	void process_input(GLFWwindow* window);
+	void process_input();
 	void draw(); // draw all game objects
 	void fill_texture_coords(); // populates `texCoords`
 	void generate_texture();
-	int get_terrain_height(int x, int z, int maxHeight); // returns height of terrain at some (x, z)
+	int get_terrain_height(int x, int z, int maxHeight) const; // returns height of terrain at some (x, z)
 	void generate_terrain(); // populates `blocks`
 	void gen_vbos_vaos();
 
 	void destroy_block();
 	void create_block();
 
-	bool is_visible(Block& block);
+	bool is_visible(const Block& block) const;
+	bool collision_occurred(glm::vec3 playerPos);
 };

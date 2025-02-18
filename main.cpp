@@ -2,6 +2,9 @@
 #include <GLFW/glfw3.h>
 #include "Constants.h"
 #include "Game.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
 
 #include <iostream>
 
@@ -29,26 +32,27 @@ int main()
         return -1;
     }
 
-    // Lock mouse cursor to screen centre
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    Game game(window, glm::vec3(BLOCK_SIZE * 25, BLOCK_SIZE * 25, BLOCK_SIZE * 25));
+    Game game(window, glm::vec3(BLOCK_SIZE * 25, BLOCK_SIZE * 25, BLOCK_SIZE * 25), true);
+    glfwSetInputMode(window, GLFW_CURSOR, game.gameState == InGame ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, game.texture);
     
     while (!(glfwWindowShouldClose(window))) {
 
-        game.process_input(window);
-
-        // Rendering
-        glClearColor(126.0f/255.0f, 192.0f/255.0f, 255.0f/255.0f, 1.0f);
+        glClearColor(126.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glfwPollEvents();
+
+        game.process_input();
         game.draw();
 
         glfwSwapBuffers(window);
-        glfwPollEvents();
     };
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
 
     return 0;
 }

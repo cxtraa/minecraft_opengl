@@ -77,7 +77,7 @@ void ShaderProgram::setMat4(const std::string& uniformName, glm::mat4 value) con
 	glUniformMatrix4fv(glGetUniformLocation(ID, uniformName.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
 
-void ShaderProgram::checkCompileErrors(unsigned int shader, const std::string& type) {
+void ShaderProgram::checkCompileErrors(unsigned int shader, const std::string& type) const {
 	int success;
 	char infoLog[1024];
 	if (type != "PROGRAM") {

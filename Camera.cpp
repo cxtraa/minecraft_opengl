@@ -5,28 +5,24 @@
 #include "Camera.h"
 #include "Constants.h"
 
-Camera::Camera(glm::vec3 startPos) {
-	cameraPos = startPos;
-	up = glm::vec3(0.0f, 1.0f, 0.0f);
-	cameraFront = glm::vec3(0.0f, 0.0f, 1.0f);
-	cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-	cameraRight = glm::vec3(1.0f, 0.0f, 0.0f);
+Camera::Camera(glm::vec3 startPos) :
+	cameraPos(startPos),
+	up(glm::vec3(0.0f, 1.0f, 0.0f)),
+	cameraUp(glm::vec3(0.0f, 1.0f, 0.0f)),
+	cameraFront(glm::vec3(0.0f, 0.0f, 1.0f)),
+	cameraRight(glm::vec3(1.0f, 0.0f, 0.0f)),
+	FOV_Y(DEFAULT_FOV_Y),
+	FOV_X(get_fov_x_deg(FOV_Y)),
+	yaw(0.0f), pitch(0.0f), roll(0.0f)
+{}
 
-	FOV_Y = DEFAULT_FOV_Y;
-	FOV_X = get_fov_x_deg(FOV_Y);
-	
-	yaw = 0.0f;
-	pitch = 0.0f;
-	roll = 0.0f;
-}
-
-glm::mat4 Camera::get_view_matrix() {
+glm::mat4 Camera::get_view_matrix() const {
 	glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, up);
 	return view;
 }
 
-glm::mat4 Camera::get_proj_matrix() {
-	glm::mat4 proj = glm::perspective(glm::radians(60.0f), ASPECT_RATIO, NEAR, FAR);
+glm::mat4 Camera::get_proj_matrix() const {
+	glm::mat4 proj = glm::perspective(glm::radians(FOV_Y), ASPECT_RATIO, NEAR, FAR);
 	return proj;
 }
 
@@ -40,7 +36,7 @@ void Camera::update() {
 	cameraUp = glm::normalize(glm::cross(cameraRight, cameraFront));
 }
 
-bool Camera::block_in_frustum(Block& block) {
+bool Camera::block_in_frustum(const Block& block) const {
 	// Determine if `block` is inside the view frustum.
 	// This is done by considering projections of the vector from camera to block in x, y, z directions.
 	// The bounds for the view frustum in x, y, z, can be found by trigonometry.
@@ -66,7 +62,7 @@ bool Camera::block_in_frustum(Block& block) {
 	return true;
 }
 
-bool Camera::camera_intersects_block(Block& block) {
+bool Camera::camera_intersects_block(const Block& block) const {
 	// Determine if the player is looking at `block`.
 	// This is done by solving the intersection of a line (cameraFront vec) and a sphere (block).
 
